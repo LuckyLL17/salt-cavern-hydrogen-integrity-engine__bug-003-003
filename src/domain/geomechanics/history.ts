@@ -1,5 +1,7 @@
 import { DomainError } from '../errors.ts';
 import { advanceGeoState, initialGeoState, type GeoInterval, type GeoParameters, type GeoState } from './damage-state.ts';
+export { initialGeoState, advanceGeoState };
+export type { GeoInterval, GeoParameters, GeoState };
 export type GeoHistoryPoint = { intervalIndex: number; state: GeoState; pressureChangeKpa: number; damageIncrement: number };
 export function advanceGeoHistory(initial: GeoState, intervals: GeoInterval[], parameters: GeoParameters): { state: GeoState; history: GeoHistoryPoint[] } {
   let state = structuredClone(initial ?? initialGeoState());

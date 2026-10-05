@@ -4,14 +4,15 @@ import { simulateDispatch, type DispatchLimits, type DispatchState } from '../do
 import { evaluateWellbore, maximumWellboreStress, type WellSegment } from '../domain/wellbore/evaluator.ts';
 import { correctSample } from '../domain/monitoring/correction.ts';
 import { fuseLeakEvidence } from '../domain/leak/fusion.ts';
-import { withdrawFromLayers, type InventoryLayer, type Withdrawal } from '../domain/purity/withdrawal.ts';
+import { withdrawFromLayers, type Withdrawal } from '../domain/purity/withdrawal.ts';
+import type { InventoryLayer } from '../domain/purity/layers.ts';
 import { blendProducts } from '../domain/purity/blending.ts';
 import { sampleParameters, type UncertaintyInput } from '../domain/uncertainty/sampler.ts';
 import { cavernVolumeM3, cavernVolumeToDepth } from '../domain/geometry/interface-volume.ts';
 import { depthAtCumulativeVolume } from '../domain/geometry/inversion.ts';
 import { advanceGeoHistory, initialGeoState, type GeoInterval, type GeoParameters, type GeoState } from '../domain/geomechanics/history.ts';
 import { safetyPressureEnvelope } from '../domain/geomechanics/pressure-envelope.ts';
-import { allocateSharedCapacity, type FacilityRequest } from '../domain/facility/allocator.ts';
+import { planSharedCapacity, type FacilityRequest } from '../domain/facility/allocator.ts';
 import { solveGasState } from '../domain/dispatch/eos.ts';
 import type { Calibration, LeakEvidence, GeometryPoint, Composition } from '../domain/types.ts';
 
@@ -41,8 +42,8 @@ export const assessmentService = {
     return { ...result, pressureEnvelope: safetyPressureEnvelope(result.state, baseMinKpa, baseMaxKpa) };
   },
   facility(requests: FacilityRequest[], stationCapacityMolPerSecond: number, horizonHours = 1) {
-    const allocations = allocateSharedCapacity(requests, stationCapacityMolPerSecond, horizonHours);
-    return { allocations, requestedMolPerSecond: requests.reduce((sum, item) => sum + item.requestedMolPerSecond, 0), allocatedMolPerSecond: allocations.reduce((sum, item) => sum + item.allocatedMolPerSecond, 0), curtailedMolPerSecond: allocations.reduce((sum, item) => sum + item.curtailedMolPerSecond, 0) };
+    const report = planSharedCapacity(requests, stationCapacityMolPerSecond, horizonHours);
+    return report;
   },
   gasState(totalMoles: number, volumeM3: number, temperatureK: number, composition: Composition) {
     return solveGasState(totalMoles, volumeM3, temperatureK, composition);
